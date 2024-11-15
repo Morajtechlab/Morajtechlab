@@ -1,0 +1,110 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+contract USDTToken {
+// Suministro total de tokens USDT
+uint public constant SUMINISTRO_TOTAL = 10000;
+
+// Decimales del token USDT
+uint8 public constant DECIMALES = 18;
+
+// Símbolo del token USDT
+string public constant SIMBOLO = "USDT";
+
+// Nombre del token USDT
+string public constant NOMBRE = "Tether USD";
+
+// Variable para acumular tokens creados
+uint public tokensCreados = SUMINISTRO_TOTAL;
+
+// Evento para notificar la creación de nuevos tokens
+event NuevoToken(address cuenta, uint cantidad);
+
+// Evento para transferencia de tokens
+event Transfer(address indexed from, address indexed to, uint256 amount);
+
+// Evento para aprobación de tokens
+event Approval(address indexed owner, address indexed spender, uint256 amount);
+
+// Mapping para balances de cuentas
+mapping(address => uint256) public balances;
+
+// Mapping para aprobaciones de tokens
+mapping(address => mapping(address => uint256)) public allowed;
+
+// Constructor
+constructor() {
+// Establecer el suministro total de tokens
+balances[msg.sender] = SUMINISTRO_TOTAL;
+emit NuevoToken(msg.sender, SUMINISTRO_TOTAL);
+}
+
+// Función para obtener el suministro total de tokens
+function totalSupply() public pure   returns (uint256) {
+return SUMINISTRO_TOTAL;
+}
+
+// Función para obtener el símbolo del token
+function symbol() public pure  returns (string memory) {
+return SIMBOLO;
+}
+
+// Función para obtener el nombre del token
+function name() public pure  returns (string memory) {
+return NOMBRE;
+}
+
+// Función para obtener los decimales del token
+function decimals() public pure returns (uint8) {
+return DECIMALES;
+}
+
+// Función para obtener el balance de una cuenta
+function balanceOf(address cuenta) public view  returns (uint256) {
+return balances[cuenta];
+}
+
+// Función para transferir tokens
+function transfer(address destino, uint cantidad) public {
+require(cantidad > 0);
+require(balances[msg.sender] >= cantidad);
+balances[msg.sender] -= cantidad;
+balances[destino] += cantidad;
+emit Transfer(msg.sender, destino, cantidad);
+}
+
+// Función para aprobar tokens
+function approve(address spender, uint cantidad) public {
+require(cantidad > 0);
+allowed[msg.sender][spender] = cantidad;
+emit Approval(msg.sender, spender, cantidad);
+}
+
+// Función para transferir tokens desde una cuenta
+function transferFrom(address desde, address destino, uint cantidad) public {
+require(cantidad > 0);
+require(balances[desde] >= cantidad);
+require(allowed[desde][msg.sender] >= cantidad);
+balances[desde] -= cantidad;
+balances[destino] += cantidad;
+allowed[desde][msg.sender] -= cantidad;
+emit Transfer(desde, destino, cantidad);
+}
+
+// Función para mintear nuevos tokens USDT
+function mint(address cuenta, uint cantidad) public  {
+require(cantidad > 0);
+balances[cuenta] += cantidad;
+tokensCreados += cantidad;
+emit NuevoToken(cuenta, cantidad);
+}
+
+// Función para quemar tokens USDT
+function burn(address cuenta, uint cantidad) public {
+require(cantidad > 0);
+require(balances[cuenta] >= cantidad);
+balances[cuenta] -= cantidad;
+tokensCreados -= cantidad;
+}
+}
